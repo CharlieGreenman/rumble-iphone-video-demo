@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rumble iPhone Video Demo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 Rumble Video Demo</h1>
+        <p class="description">Watch the video and feel the vibrations sync with the action!</p>
+        
+        <div class="video-container">
+            <video id="demoVideo" controls playsinline>
+                <source src="demo-video.mp4" type="video/mp4">
+                <!-- Fallback for testing without video file -->
+                <div class="video-placeholder">
+                    <p>📹 Demo Video</p>
+                    <p>15 seconds of action</p>
+                </div>
+            </video>
+        </div>
+        
+        <div class="controls">
+            <button id="playButton" class="control-btn">▶️ Play & Rumble</button>
+            <button id="testVibration" class="control-btn">📳 Test Vibration</button>
+        </div>
+        
+        <div class="vibration-indicator" id="vibrationIndicator">
+            <div class="pulse"></div>
+            <span>RUMBLE!</span>
+        </div>
+        
+        <div class="timeline">
+            <h3>Rumble Events:</h3>
+            <div class="event-list">
+                <div class="event">⚡ 2s - Thunder Strike</div>
+                <div class="event">💥 5s - Explosion</div>
+                <div class="event">🏃 8s - Running Steps</div>
+                <div class="event">🎯 12s - Impact Hit</div>
+                <div class="event">🌟 14s - Victory</div>
+            </div>
+        </div>
+        
+        <div class="info">
+            <p><strong>Note:</strong> This demo works best on iPhone with iOS Safari. Make sure your device is not in silent mode to feel the vibrations.</p>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html> 
