@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Demo Video</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        canvas {
+            border: 2px solid #333;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 10px;
+        }
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #333;
+            color: white;
+        }
+        button:hover {
+            background: #555;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎬 Demo Video Creator</h1>
+    <p>This creates a visual demo showing action effects at the vibration timing points.</p>
+    
+    <canvas id="demoCanvas" width="800" height="450"></canvas>
+    
+    <div class="controls">
+        <button onclick="startDemo()">▶️ Start Demo</button>
+        <button onclick="stopDemo()">⏹️ Stop Demo</button>
+        <button onclick="downloadVideo()">💾 Download Video</button>
+    </div>
+    
+    <div class="info">
+        <h3>Vibration Events Timeline:</h3>
+        <ul>
+            <li><strong>2s:</strong> ⚡ Thunder Strike - Lightning flash</li>
+            <li><strong>5s:</strong> 💥 Explosion - Burst effect</li>
+            <li><strong>8s:</strong> 🏃 Running Steps - Moving elements</li>
+            <li><strong>12s:</strong> 🎯 Impact Hit - Screen shake</li>
+            <li><strong>14s:</strong> 🌟 Victory - Celebration effect</li>
+        </ul>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('demoCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let animationId;
+        let startTime;
+        let isRunning = false;
+        
+        // Vibration events timing
+        const events = [
+            { time: 2, name: "Thunder Strike", emoji: "⚡", effect: "lightning" },
+            { time: 5, name: "Explosion", emoji: "💥", effect: "explosion" },
+            { time: 8, name: "Running Steps", emoji: "🏃", effect: "running" },
+            { time: 12, name: "Impact Hit", emoji: "🎯", effect: "impact" },
+            { time: 14, name: "Victory", emoji: "🌟", effect: "victory" }
+        ];
+        
+        function startDemo() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            startTime = Date.now();
+            animate();
+        }
+        
+        function stopDemo() {
+            isRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            clearCanvas();
+        }
+        
+        function animate() {
+            if (!isRunning) return;
+            
+            const elapsed = (Date.now() - startTime) / 1000;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw gradient background
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw time indicator
+            ctx.fillStyle = 'white';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Time: ${elapsed.toFixed(1)}s`, canvas.width / 2, 50);
+            
+            // Check for events and draw effects
+            for (let event of events) {
+                if (elapsed >= event.time && elapsed < event.time + 1) {
+                    drawEffect(event.effect, elapsed - event.time);
+                    
+                    // Draw event name
+                    ctx.fillStyle = 'yellow';
+                    ctx.font = '36px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`${event.emoji} ${event.name}`, canvas.width / 2, canvas.height / 2);
+                }
+            }
+            
+            // Stop after 15 seconds
+            if (elapsed >= 15) {
+                stopDemo();
+                return;
+            }
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        function drawEffect(effect, progress) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            switch(effect) {
+                case 'lightning':
+                    // Lightning flash
+                    ctx.fillStyle = `rgba(255, 255, 255, ${1 - progress})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Lightning bolts
+                    ctx.strokeStyle = 'yellow';
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, 0);
+                    ctx.lineTo(centerX - 50, 150);
+                    ctx.lineTo(centerX + 30, 150);
+                    ctx.lineTo(centerX - 20, 300);
+                    ctx.lineTo(centerX + 40, 300);
+                    ctx.lineTo(centerX, canvas.height);
+                    ctx.stroke();
+                    break;
+                    
+                case 'explosion':
+                    // Explosion burst
+                    const radius = progress * 200;
+                    for (let i = 0; i < 12; i++) {
+                        const angle = (i * Math.PI * 2) / 12;
+                        const x = centerX + Math.cos(angle) * radius;
+                        const y = centerY + Math.sin(angle) * radius;
+                        
+                        ctx.fillStyle = `rgba(255, ${255 - progress * 255}, 0, ${1 - progress})`;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 20, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+                    
+                case 'running':
+                    // Moving elements
+                    const offset = progress * 100;
+                    for (let i = 0; i < 5; i++) {
+                        const x = (i * 160 + offset) % canvas.width;
+                        const y = centerY + Math.sin(x * 0.01) * 50;
+                        
+                        ctx.fillStyle = `rgba(100, 200, 255, ${1 - progress})`;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 15, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+                    
+                case 'impact':
+                    // Screen shake effect
+                    const shakeX = (Math.random() - 0.5) * 20 * (1 - progress);
+                    const shakeY = (Math.random() - 0.5) * 20 * (1 - progress);
+                    ctx.translate(shakeX, shakeY);
+                    
+                    // Impact rings
+                    for (let i = 0; i < 3; i++) {
+                        const ringRadius = progress * 150 + i * 50;
+                        ctx.strokeStyle = `rgba(255, 0, 0, ${1 - progress})`;
+                        ctx.lineWidth = 10;
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, ringRadius, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    
+                    ctx.translate(-shakeX, -shakeY);
+                    break;
+                    
+                case 'victory':
+                    // Celebration particles
+                    for (let i = 0; i < 20; i++) {
+                        const x = Math.random() * canvas.width;
+                        const y = Math.random() * canvas.height;
+                        const size = Math.random() * 10 + 5;
+                        
+                        ctx.fillStyle = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                        ctx.beginPath();
+                        ctx.arc(x, y, size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+            }
+        }
+        
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw default background
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = 'white';
+            ctx.font = '48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🎬 Demo Video', canvas.width / 2, canvas.height / 2);
+        }
+        
+        function downloadVideo() {
+            alert('Video download feature would require MediaRecorder API. For now, you can use screen recording software to capture the canvas animation.');
+        }
+        
+        // Initialize canvas
+        clearCanvas();
+    </script>
+</body>
+</html> 

@@ -179,16 +179,49 @@ function checkVibrationEvents() {
 }
 
 function triggerVibration(event) {
+    let vibrationWorked = false;
+    
     // Check if vibration is supported
     if ('vibrate' in navigator) {
-        navigator.vibrate(event.pattern);
-        console.log(`Vibration triggered: ${event.name}`);
+        try {
+            const result = navigator.vibrate(event.pattern);
+            console.log(`Vibration triggered: ${event.name}, result:`, result);
+            vibrationWorked = true;
+        } catch (error) {
+            console.error('Vibration failed:', error);
+        }
     } else {
         console.log('Vibration not supported on this device');
     }
     
-    // Show visual indicator
+    // If vibration didn't work, simulate it visually
+    if (!vibrationWorked) {
+        simulateVisualVibration(event);
+    }
+    
+    // Always show visual indicator
     showVibrationIndicator(event);
+}
+
+function simulateVisualVibration(event) {
+    // Add visual vibration effect to the body
+    document.body.classList.add('simulate-vibration');
+    
+    // Add shake effect to video container
+    const videoContainer = document.querySelector('.video-container');
+    if (videoContainer) {
+        videoContainer.classList.add('vibrate');
+    }
+    
+    // Remove the effect after animation completes
+    setTimeout(() => {
+        document.body.classList.remove('simulate-vibration');
+        if (videoContainer) {
+            videoContainer.classList.remove('vibrate');
+        }
+    }, 500);
+    
+    console.log(`Visual vibration simulation: ${event.name}`);
 }
 
 function showVibrationIndicator(event) {
@@ -233,23 +266,61 @@ function resetEventHighlights() {
 
 function testVibration() {
     const testPattern = [200, 100, 200, 100, 200];
+    let vibrationWorked = false;
     
+    // Try to vibrate and provide feedback
     if ('vibrate' in navigator) {
-        navigator.vibrate(testPattern);
-        showVibrationIndicator({ emoji: '📳', name: 'Test Vibration' });
-        console.log('Test vibration triggered');
-    } else {
-        alert('Vibration is not supported on this device. Try opening this page on an iPhone with iOS Safari.');
+        try {
+            const result = navigator.vibrate(testPattern);
+            showVibrationIndicator({ emoji: '📳', name: 'Test Vibration' });
+            console.log('Test vibration triggered, result:', result);
+            vibrationWorked = true;
+            
+            // Show success message for iOS Safari
+            if (isIOS()) {
+                setTimeout(() => {
+                    alert('Vibration test sent! If you didn\'t feel it, make sure your iPhone is not in silent mode and that vibrations are enabled in Settings > Sounds & Haptics.');
+                }, 500);
+            }
+        } catch (error) {
+            console.error('Vibration failed:', error);
+        }
+    }
+    
+    // If vibration didn't work, simulate it visually
+    if (!vibrationWorked) {
+        simulateVisualVibration({ emoji: '📳', name: 'Test Vibration' });
+        showVibrationIndicator({ emoji: '📳', name: 'Visual Test' });
+        
+        // More specific message for iOS Safari
+        if (isIOS()) {
+            alert('Vibration API not detected. iOS Safari has limited vibration support. You should see a visual shake effect instead.\n\nTo enable real vibrations:\n1. Make sure your iPhone is not in silent mode\n2. Check Settings > Sounds & Haptics\n3. Update to the latest iOS version\n\nNote: Some iOS versions may not support web vibrations at all.');
+        } else {
+            alert('Vibration is not supported on this device. You should see a visual shake effect instead. Try opening this page on an iPhone with iOS Safari for real vibrations.');
+        }
     }
 }
 
 function checkVibrationSupport() {
-    if (!('vibrate' in navigator)) {
-        console.log('Vibration not supported');
+    const hasVibrationAPI = 'vibrate' in navigator;
+    const isIOSDevice = isIOS();
+    
+    console.log('Vibration API available:', hasVibrationAPI);
+    console.log('iOS device:', isIOSDevice);
+    
+    if (!hasVibrationAPI) {
         const info = document.querySelector('.info p');
-        info.innerHTML = '<strong>Note:</strong> Vibration is not supported on this device. For the full experience, please open this page on an iPhone with iOS Safari and ensure your device is not in silent mode.';
+        if (isIOSDevice) {
+            info.innerHTML = '<strong>Note:</strong> Vibration API not detected on this iPhone. iOS Safari has limited vibration support. Make sure your device is not in silent mode and vibrations are enabled in Settings > Sounds & Haptics. Some iOS versions may not support web vibrations.';
+        } else {
+            info.innerHTML = '<strong>Note:</strong> Vibration is not supported on this device. For the full experience, please open this page on an iPhone with iOS Safari and ensure your device is not in silent mode.';
+        }
     } else {
         console.log('Vibration supported');
+        const info = document.querySelector('.info p');
+        if (isIOSDevice) {
+            info.innerHTML = '<strong>Note:</strong> iPhone detected! Make sure your device is not in silent mode and vibrations are enabled in Settings > Sounds & Haptics for the best experience.';
+        }
     }
 }
 

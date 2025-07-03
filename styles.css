@@ -11,6 +11,18 @@ body {
     min-height: 100vh;
     color: white;
     line-height: 1.6;
+    transition: all 0.1s ease;
+}
+
+/* Visual vibration simulation */
+body.simulate-vibration {
+    animation: body-shake 0.5s ease-in-out;
+}
+
+@keyframes body-shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
 }
 
 .container {
@@ -42,6 +54,17 @@ h1 {
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    transition: all 0.1s ease;
+}
+
+.video-container.vibrate {
+    animation: shake-container 0.5s ease-in-out;
+}
+
+@keyframes shake-container {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    25% { transform: translateX(-3px) rotate(-1deg); }
+    75% { transform: translateX(3px) rotate(1deg); }
 }
 
 video {
