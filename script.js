@@ -13,12 +13,16 @@ let testVibrationButton;
 let vibrationIndicator;
 let eventElements;
 let lastTriggeredEvent = -1;
+let mockVideoMode = false;
+let mockTime = 0;
+let mockInterval = null;
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeElements();
     setupEventListeners();
     checkVibrationSupport();
+    checkVideoAvailability();
 });
 
 function initializeElements() {
@@ -32,11 +36,7 @@ function initializeElements() {
 function setupEventListeners() {
     // Play button click
     playButton.addEventListener('click', function() {
-        if (video.paused) {
-            playVideo();
-        } else {
-            pauseVideo();
-        }
+        handlePlayButtonClick();
     });
 
     // Test vibration button
@@ -44,34 +44,106 @@ function setupEventListeners() {
         testVibration();
     });
 
-    // Video time update
-    video.addEventListener('timeupdate', function() {
-        checkVibrationEvents();
-        updateEventHighlight();
-    });
+    // Only add video event listeners if not in mock mode
+    if (!mockVideoMode) {
+        // Video time update
+        video.addEventListener('timeupdate', function() {
+            checkVibrationEvents();
+            updateEventHighlight();
+        });
 
-    // Video play/pause events
-    video.addEventListener('play', function() {
-        playButton.textContent = '⏸️ Pause';
-    });
+        // Video play/pause events
+        video.addEventListener('play', function() {
+            playButton.textContent = '⏸️ Pause';
+        });
 
-    video.addEventListener('pause', function() {
-        playButton.textContent = '▶️ Play & Rumble';
-    });
+        video.addEventListener('pause', function() {
+            playButton.textContent = '▶️ Play & Rumble';
+        });
 
-    // Video ended
-    video.addEventListener('ended', function() {
+        // Video ended
+        video.addEventListener('ended', function() {
+            playButton.textContent = '▶️ Play & Rumble';
+            resetEventHighlights();
+            lastTriggeredEvent = -1;
+        });
+
+        // Handle video error (when no video file is present)
+        video.addEventListener('error', function() {
+            console.log('Video file not found - enabling mock mode');
+            enableMockVideoMode();
+        });
+    }
+}
+
+function checkVideoAvailability() {
+    // Check if video can load
+    if (video.readyState === 0) {
+        video.addEventListener('loadedmetadata', function() {
+            console.log('Video loaded successfully');
+        });
+        
+        video.addEventListener('error', function() {
+            console.log('Video failed to load - enabling mock mode');
+            enableMockVideoMode();
+        });
+        
+        // Try to load the video
+        video.load();
+    }
+}
+
+function handlePlayButtonClick() {
+    if (mockVideoMode) {
+        handleMockVideoPlayback();
+    } else {
+        if (video.paused) {
+            playVideo();
+        } else {
+            pauseVideo();
+        }
+    }
+}
+
+function handleMockVideoPlayback() {
+    if (mockInterval) {
+        // Stop mock playback
+        clearInterval(mockInterval);
+        mockInterval = null;
         playButton.textContent = '▶️ Play & Rumble';
         resetEventHighlights();
+    } else {
+        // Start mock playback
+        playButton.textContent = '⏸️ Pause';
+        mockTime = 0;
         lastTriggeredEvent = -1;
-    });
-
-    // Handle video error (when no video file is present)
-    video.addEventListener('error', function() {
-        console.log('Video file not found - demo will work with placeholder');
-        // Create a mock video experience for demonstration
-        enableMockVideoMode();
-    });
+        
+        mockInterval = setInterval(() => {
+            mockTime += 0.1;
+            
+            // Check vibration events
+            for (let i = 0; i < vibrationEvents.length; i++) {
+                const event = vibrationEvents[i];
+                if (mockTime >= event.time && mockTime < event.time + 0.2 && i > lastTriggeredEvent) {
+                    triggerVibration(event);
+                    lastTriggeredEvent = i;
+                }
+            }
+            
+            // Update event highlights
+            updateMockEventHighlight();
+            
+            // End simulation at 15 seconds
+            if (mockTime >= 15) {
+                clearInterval(mockInterval);
+                mockInterval = null;
+                mockTime = 0;
+                lastTriggeredEvent = -1;
+                playButton.textContent = '▶️ Play & Rumble';
+                resetEventHighlights();
+            }
+        }, 100);
+    }
 }
 
 function playVideo() {
@@ -84,6 +156,7 @@ function playVideo() {
         console.log('Video play failed:', error);
         // Fallback to mock mode if video fails
         enableMockVideoMode();
+        handleMockVideoPlayback();
     });
 }
 
@@ -141,6 +214,17 @@ function updateEventHighlight() {
     });
 }
 
+function updateMockEventHighlight() {
+    eventElements.forEach((element, index) => {
+        const event = vibrationEvents[index];
+        if (mockTime >= event.time && mockTime < event.time + 1) {
+            element.classList.add('active');
+        } else {
+            element.classList.remove('active');
+        }
+    });
+}
+
 function resetEventHighlights() {
     eventElements.forEach(element => {
         element.classList.remove('active');
@@ -153,6 +237,7 @@ function testVibration() {
     if ('vibrate' in navigator) {
         navigator.vibrate(testPattern);
         showVibrationIndicator({ emoji: '📳', name: 'Test Vibration' });
+        console.log('Test vibration triggered');
     } else {
         alert('Vibration is not supported on this device. Try opening this page on an iPhone with iOS Safari.');
     }
@@ -160,8 +245,11 @@ function testVibration() {
 
 function checkVibrationSupport() {
     if (!('vibrate' in navigator)) {
+        console.log('Vibration not supported');
         const info = document.querySelector('.info p');
         info.innerHTML = '<strong>Note:</strong> Vibration is not supported on this device. For the full experience, please open this page on an iPhone with iOS Safari and ensure your device is not in silent mode.';
+    } else {
+        console.log('Vibration supported');
     }
 }
 
@@ -178,52 +266,17 @@ function requestPermissions() {
 // Mock video mode for demonstration when no video file is present
 function enableMockVideoMode() {
     console.log('Enabling mock video mode');
+    mockVideoMode = true;
     
-    // Create a simulation of video playback
-    let mockTime = 0;
-    let mockInterval;
-    
-    playButton.addEventListener('click', function() {
-        if (mockInterval) {
-            clearInterval(mockInterval);
-            mockInterval = null;
-            playButton.textContent = '▶️ Play & Rumble';
-        } else {
-            playButton.textContent = '⏸️ Pause';
-            mockInterval = setInterval(() => {
-                mockTime += 0.1;
-                
-                // Check vibration events
-                for (let i = 0; i < vibrationEvents.length; i++) {
-                    const event = vibrationEvents[i];
-                    if (mockTime >= event.time && mockTime < event.time + 0.2 && i > lastTriggeredEvent) {
-                        triggerVibration(event);
-                        lastTriggeredEvent = i;
-                    }
-                }
-                
-                // Update event highlights
-                eventElements.forEach((element, index) => {
-                    const event = vibrationEvents[index];
-                    if (mockTime >= event.time && mockTime < event.time + 1) {
-                        element.classList.add('active');
-                    } else {
-                        element.classList.remove('active');
-                    }
-                });
-                
-                // End simulation at 15 seconds
-                if (mockTime >= 15) {
-                    clearInterval(mockInterval);
-                    mockInterval = null;
-                    mockTime = 0;
-                    lastTriggeredEvent = -1;
-                    playButton.textContent = '▶️ Play & Rumble';
-                    resetEventHighlights();
-                }
-            }, 100);
-        }
-    });
+    // Hide the video element and show a placeholder
+    const videoContainer = document.querySelector('.video-container');
+    videoContainer.innerHTML = `
+        <div class="video-placeholder">
+            <p>📹 Demo Video</p>
+            <p>15 seconds of action</p>
+            <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 10px;">Running in demo mode</p>
+        </div>
+    `;
 }
 
 // Add some visual feedback for better user experience

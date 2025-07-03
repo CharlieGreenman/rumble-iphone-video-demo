@@ -12,14 +12,16 @@
         <p class="description">Watch the video and feel the vibrations sync with the action!</p>
         
         <div class="video-container">
-            <video id="demoVideo" controls playsinline>
+            <video id="demoVideo" controls playsinline muted>
                 <source src="demo-video.mp4" type="video/mp4">
-                <!-- Fallback for testing without video file -->
-                <div class="video-placeholder">
-                    <p>📹 Demo Video</p>
-                    <p>15 seconds of action</p>
-                </div>
+                Your browser does not support the video tag.
             </video>
+            <!-- Fallback placeholder (will be shown if video fails to load) -->
+            <div class="video-placeholder" style="display: none;">
+                <p>📹 Demo Video</p>
+                <p>15 seconds of action</p>
+                <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 10px;">Running in demo mode</p>
+            </div>
         </div>
         
         <div class="controls">
@@ -45,6 +47,9 @@
         
         <div class="info">
             <p><strong>Note:</strong> This demo works best on iPhone with iOS Safari. Make sure your device is not in silent mode to feel the vibrations.</p>
+            <p style="margin-top: 10px; font-size: 0.8rem; opacity: 0.8;">
+                <strong>Tip:</strong> Try the "Test Vibration" button first to verify your device supports vibrations.
+            </p>
         </div>
     </div>
     

@@ -55,6 +55,13 @@ video {
     padding: 60px 20px;
     text-align: center;
     font-size: 1.2rem;
+    border: 2px dashed rgba(255,255,255,0.3);
+    animation: pulse-border 2s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+    0%, 100% { border-color: rgba(255,255,255,0.3); }
+    50% { border-color: rgba(255,255,255,0.6); }
 }
 
 /* Controls */
@@ -176,6 +183,7 @@ video {
     background: rgba(255,255,255,0.3);
     border-left-color: #ffff00;
     transform: translateX(10px);
+    box-shadow: 0 0 20px rgba(255,255,0,0.3);
 }
 
 /* Info */
@@ -206,12 +214,20 @@ video {
     
     .control-btn {
         width: 100%;
-        max-width: 300px;
+        max-width: 280px;
     }
     
     .vibration-indicator {
         padding: 15px 30px;
         font-size: 1.2rem;
+    }
+    
+    .timeline {
+        padding: 20px;
+    }
+    
+    .event {
+        font-size: 0.9rem;
     }
 }
 
@@ -225,11 +241,11 @@ video {
     }
     
     .timeline {
-        padding: 20px;
+        padding: 15px;
     }
     
     .event {
-        padding: 10px 14px;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+        padding: 10px 12px;
     }
 } 
